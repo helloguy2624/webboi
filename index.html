@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bói Tình Yêu – Đo tỉ lệ yêu nhau</title>
+<meta name="description" content="Nhập tên của bạn và người ấy để xem tỉ lệ yêu nhau.">
+<style>
+  :root {
+    --bg1: #2a0a24;
+    --bg2: #5b1546;
+    --rose: #ff5d8f;
+    --pink: #ff9ec0;
+    --gold: #ffd27a;
+    --ink: #fff5f9;
+    --muted: #e3b8cb;
+    --card: rgba(255, 255, 255, 0.09);
+    --line: rgba(255, 255, 255, 0.18);
+  }
+  * { box-sizing: border-box; }
+  html, body { min-height: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: 24px 16px;
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(1100px 700px at 12% -10%, #8a2467 0%, transparent 60%),
+      radial-gradient(900px 600px at 100% 110%, rgba(194, 51, 107, 0.35) 0%, transparent 60%),
+      linear-gradient(160deg, var(--bg1), var(--bg2));
+    overflow-x: hidden;
+  }
+
+  /* Trái tim bay nền */
+  .hearts { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+  .hearts span {
+    position: absolute;
+    bottom: -40px;
+    color: var(--pink);
+    opacity: 0;
+    animation: rise linear infinite;
+  }
+  @keyframes rise {
+    0%   { transform: translateY(0) rotate(0deg) scale(.8); opacity: 0; }
+    10%  { opacity: .45; }
+    100% { transform: translateY(-115vh) rotate(40deg) scale(1.1); opacity: 0; }
+  }
+
+  .card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 440px;
+    padding: 32px 26px 26px;
+    border-radius: 24px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    text-align: center;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid rgba(255, 210, 122, 0.4);
+  }
+  h1 {
+    margin: 14px 0 6px;
+    font-size: 28px;
+    line-height: 1.2;
+    background: linear-gradient(90deg, var(--gold), var(--rose));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .sub { margin: 0 0 22px; color: var(--muted); font-size: 15px; }
+
+  form { text-align: left; }
+  label { display: block; margin: 0 0 6px; font-size: 14px; color: var(--muted); }
+  .field { margin-bottom: 16px; }
+  input[type="text"] {
+    width: 100%;
+    padding: 13px 14px;
+    font: inherit;
+    font-size: 16px;
+    color: var(--ink);
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  input[type="text"]::placeholder { color: rgba(255, 245, 249, 0.4); }
+  input[type="text"]:focus {
+    border-color: var(--rose);
+    box-shadow: 0 0 0 3px rgba(255, 93, 143, 0.25);
+  }
+  .amp { text-align: center; margin: -4px 0 12px; color: var(--rose); font-size: 22px; }
+
+  button {
+    font: inherit;
+    cursor: pointer;
+    border: 0;
+    border-radius: 12px;
+    transition: transform .15s, filter .2s, opacity .2s;
+  }
+  .primary {
+    width: 100%;
+    padding: 14px;
+    font-size: 17px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--rose), #ff3d7a 60%, #e0245e);
+    box-shadow: 0 10px 24px rgba(255, 61, 122, 0.35);
+  }
+  .primary:hover { filter: brightness(1.08); }
+  .primary:active { transform: translateY(1px); }
+  .primary:disabled { opacity: .6; cursor: not-allowed; }
+  .ghost {
+    margin-top: 18px;
+    padding: 11px 20px;
+    font-size: 15px;
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid var(--line);
+  }
+  .ghost:hover { background: rgba(255, 255, 255, 0.08); }
+
+  .error { min-height: 20px; margin: 10px 0 0; font-size: 14px; color: #ffb3c6; text-align: center; }
+  .note { margin: 14px 0 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); text-align: center; }
+
+  /* Kết quả */
+  .result { padding-top: 4px; }
+  .pair {
+    margin: 0 0 14px;
+    font-size: 20px;
+    font-weight: 600;
+    word-break: break-word;
+  }
+  .pair .heart { color: var(--rose); font-style: normal; margin: 0 6px; }
+  .ring { position: relative; width: 200px; height: 200px; margin: 0 auto 14px; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 8; }
+  .ring .track { stroke: rgba(255, 255, 255, 0.12); }
+  .ring .bar { stroke: url(#g); stroke-linecap: round; }
+  .num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 54px;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+  .num small { font-size: 22px; font-weight: 600; margin-left: 2px; color: var(--pink); }
+  .result h2 { margin: 0 0 6px; font-size: 22px; color: var(--gold); }
+  .result .msg { margin: 0 auto; max-width: 34ch; color: var(--muted); font-size: 15px; line-height: 1.55; }
+  .status { margin: 16px 0 0; font-size: 12.5px; color: var(--muted); min-height: 18px; }
+  .status.ok { color: #9be8b6; }
+  .status.fail { color: #ffb3c6; }
+
+  [hidden] { display: none !important; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hearts { display: none; }
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="hearts" id="hearts" aria-hidden="true"></div>
+
+  <main class="card">
+    <!-- Màn hình nhập tên -->
+    <section id="formView">
+      <span class="badge">Bói tình yêu</span>
+      <h1>Bạn và người ấy hợp nhau bao nhiêu %?</h1>
+      <p class="sub">Nhập hai cái tên, để trái tim lên tiếng.</p>
+
+      <form id="loveForm" novalidate>
+        <div class="field">
+          <label for="userName">Tên của bạn</label>
+          <input type="text" id="userName" name="userName" maxlength="40" autocomplete="off" placeholder="Ví dụ: Minh Anh" required>
+        </div>
+        <div class="amp" aria-hidden="true">♥</div>
+        <div class="field">
+          <label for="partnerName">Tên người bạn muốn ghép đôi</label>
+          <input type="text" id="partnerName" name="partnerName" maxlength="40" autocomplete="off" placeholder="Ví dụ: Hoàng Nam" required>
+        </div>
+        <button type="submit" class="primary" id="submitBtn">Xem kết quả</button>
+        <p class="error" id="error" role="alert"></p>
+      </form>
+
+      <p class="note">
+        Kết quả chỉ mang tính giải trí.
+      </p>
+    </section>
+
+    <!-- Màn hình kết quả -->
+    <section id="resultView" class="result" hidden aria-live="polite">
+      <span class="badge">Kết quả</span>
+      <p class="pair" style="margin-top:14px">
+        <span id="rUser"></span><i class="heart">♥</i><span id="rPartner"></span>
+      </p>
+
+      <div class="ring">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <defs>
+            <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ffd27a"/>
+              <stop offset="1" stop-color="#ff5d8f"/>
+            </linearGradient>
+          </defs>
+          <circle class="track" cx="60" cy="60" r="52"/>
+          <circle class="bar" id="bar" cx="60" cy="60" r="52"/>
+        </svg>
+        <div class="num"><span id="pct">0</span><small>%</small></div>
+      </div>
+
+      <h2 id="rTitle"></h2>
+      <p class="msg" id="rText"></p>
+      <p class="status" id="sendStatus"></p>
+      <button type="button" class="ghost" id="againBtn">Xem cặp khác</button>
+    </section>
+  </main>
+
+<noscript>Trang này cần bật JavaScript để hoạt động.</noscript>
+
+<script>
+  // ====== CẤU HÌNH ======
+  // Địa chỉ nhận dữ liệu. Dùng "/api/submit" khi chạy cùng server.js.
+  // Nếu máy chủ nằm ở nơi khác, đổi thành URL đầy đủ, ví dụ "https://ten-mien.com/api/submit"
+  // (khi đó server cần bật CORS, xem ALLOWED_ORIGIN trong server.js).
+  const API_URL = "/api/submit";
+  // ======================
+
+  const $ = (id) => document.getElementById(id);
+  const formView = $("formView");
+  const resultView = $("resultView");
+  const form = $("loveForm");
+  const userInput = $("userName");
+  const partnerInput = $("partnerName");
+  const submitBtn = $("submitBtn");
+  const errorEl = $("error");
+  const bar = $("bar");
+  const pctEl = $("pct");
+  const statusEl = $("sendStatus");
+
+  const RADIUS = 52;
+  const CIRC = 2 * Math.PI * RADIUS;
+  bar.style.strokeDasharray = CIRC;
+  bar.style.strokeDashoffset = CIRC;
+
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // Trái tim bay nền
+  (function makeHearts() {
+    if (reduceMotion) return;
+    const box = $("hearts");
+    for (let i = 0; i < 16; i++) {
+      const h = document.createElement("span");
+      h.textContent = "♥";
+      h.style.left = Math.random() * 100 + "%";
+      h.style.fontSize = 14 + Math.random() * 26 + "px";
+      h.style.animationDuration = 9 + Math.random() * 10 + "s";
+      h.style.animationDelay = -Math.random() * 18 + "s";
+      box.appendChild(h);
+    }
+  })();
+
+  const tiers = [
+    { max: 24,  title: "Duyên còn mỏng",     text: "Hai bạn còn nhiều điều chưa hiểu nhau. Nhưng tình cảm vốn có thể vun đắp từng ngày mà." },
+    { max: 49,  title: "Cần thêm thời gian", text: "Có chút hợp, có chút lệch. Trò chuyện nhiều hơn, biết đâu duyên sẽ đến muộn mà chắc." },
+    { max: 74,  title: "Khá hợp nhau",       text: "Hai bạn có nhiều điểm chung đấy. Chỉ cần thêm một chút chân thành là ổn." },
+    { max: 89,  title: "Rất đáng thử",       text: "Sợi dây duyên giữa hai bạn khá chắc. Đừng để cơ hội này trôi qua nhé!" },
+    { max: 100, title: "Trời sinh một cặp",  text: "Tương hợp đến khó tin! Còn chần chừ gì mà không nói lời yêu thương ngay hôm nay." }
+  ];
+
+  function setValue(v) {
+    pctEl.textContent = Math.round(v);
+    bar.style.strokeDashoffset = CIRC * (1 - v / 100);
+  }
+
+  function animateTo(target) {
+    if (reduceMotion) { setValue(target); return; }
+    const start = performance.now();
+    const duration = 1800;
+    function tick(now) {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setValue(target * eased);
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function cleanName(value) {
+    return value.replace(/\s+/g, " ").trim();
+  }
+
+  async function sendToServer(payload) {
+    statusEl.className = "status";
+    statusEl.textContent = "Đang gửi thông tin về máy chủ…";
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      statusEl.className = "status ok";
+      statusEl.textContent = "";
+    } catch (err) {
+      statusEl.className = "status fail";
+      statusEl.textContent = "";
+      console.error("", err);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    errorEl.textContent = "";
+
+    const userName = cleanName(userInput.value);
+    const partnerName = cleanName(partnerInput.value);
+
+    if (!userName || !partnerName) {
+      errorEl.textContent = "Vui lòng nhập đủ cả hai cái tên nhé.";
+      (userName ? partnerInput : userInput).focus();
+      return;
+    }
+
+    submitBtn.disabled = true;
+
+    // Số % lấy ngẫu nhiên từ 1 đến 100
+    const percent = Math.floor(Math.random() * 100) + 1;
+    const tier = tiers.find((t) => percent <= t.max);
+
+    // Dùng textContent để tên người dùng không bị hiểu là mã HTML
+    $("rUser").textContent = userName;
+    $("rPartner").textContent = partnerName;
+    $("rTitle").textContent = tier.title;
+    $("rText").textContent = tier.text;
+    setValue(0);
+
+    formView.hidden = true;
+    resultView.hidden = false;
+    animateTo(percent);
+
+    // Gửi tên người dùng và tên người muốn ghép đôi về máy chủ
+    sendToServer({ userName, partnerName });
+  });
+
+  $("againBtn").addEventListener("click", () => {
+    form.reset();
+    errorEl.textContent = "";
+    submitBtn.disabled = false;
+    resultView.hidden = true;
+    formView.hidden = false;
+    userInput.focus();
+  });
+</script>
+</body>
+</html>
